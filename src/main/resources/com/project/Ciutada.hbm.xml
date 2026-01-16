@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.project">
+    <class name="Ciutat" table="ciutats">
+        <!-- Clau primària -->
+        <id name="ciutatId" column="ciutat_id">
+            <generator class="identity"/>
+        </id>
+        
+        <!-- Atributs simples -->
+        <property name="nom" column="nom" type="string" not-null="true"/>
+        <property name="pais" column="pais" type="string"/>
+        <property name="poblacio" column="poblacio" type="integer"/>
+        
+        <!-- Relació OneToMany amb Ciutada -->
+        <set name="ciutadans" inverse="true" cascade="all" lazy="false">
+            <key column="ciutat_id"/>
+            <one-to-many class="Ciutada"/>
+        </set>
+    </class>
+</hibernate-mapping>
