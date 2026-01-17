@@ -2,7 +2,10 @@ package com.project;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Ciutat implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -12,6 +15,7 @@ public class Ciutat implements Serializable {
     private String pais;
     private Integer poblacio;
     private Set<Ciutada> ciutadans = new HashSet<>();
+    private String uuid = UUID.randomUUID().toString();
     
     // Constructor buit (obligatori per Hibernate)
     public Ciutat() {}
@@ -37,24 +41,50 @@ public class Ciutat implements Serializable {
     public void setPoblacio(Integer poblacio) { this.poblacio = poblacio; }
     
     public Set<Ciutada> getCiutadans() { return ciutadans; }
-    public void setCiutadans(Set<Ciutada> ciutadans) { this.ciutadans = ciutadans; }
     
-    // Mètode toString
+    public void setCiutadans(Set<Ciutada> ciutadans) {
+        this.ciutadans.clear();
+        if (ciutadans != null) {
+            ciutadans.forEach(this::addCiutada);
+        }
+    }
+    
+    // Mètodes helper per mantenir coherència bidireccional
+    public void addCiutada(Ciutada ciutada) {
+        ciutadans.add(ciutada);
+        ciutada.setCiutat(this);
+    }
+    
+    public void removeCiutada(Ciutada ciutada) {
+        ciutadans.remove(ciutada);
+        ciutada.setCiutat(null);
+    }
+    
+    // Mètode toString (igual que la versió JPA)
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(ciutatId).append(": ").append(nom).append(" (").append(pais).append("), ");
-        sb.append("Població: ").append(poblacio).append(", Ciutadans: [");
-        
+        String llistaCiutadans = "Buit";
         if (ciutadans != null && !ciutadans.isEmpty()) {
-            boolean primer = true;
-            for (Ciutada c : ciutadans) {
-                if (!primer) sb.append(" | ");
-                sb.append(c.getNom()).append(" ").append(c.getCognom());
-                primer = false;
-            }
+            llistaCiutadans = ciutadans.stream()
+                .map(c -> c.getNom() + " " + c.getCognom())
+                .collect(Collectors.joining(" | "));
         }
-        sb.append("]");
-        return sb.toString();
+        
+        return String.format("Ciutat [ID=%d, Nom=%s, País=%s, Població=%d, Ciutadans: [%s]]",
+            ciutatId, nom, pais, poblacio, llistaCiutadans);
+    }
+    
+    // Equals i hashCode basats en UUID
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Ciutat)) return false;
+        Ciutat ciutat = (Ciutat) o;
+        return Objects.equals(uuid, ciutat.uuid);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid);
     }
 }

@@ -35,7 +35,7 @@ mvn compile test package
 
 Executa la classe principal en el projecte actual:
 ```bash
-mvn exec:java -q "-Dexec.mainClass=com.project.Main"
+mvn clean compile test package exec:java -q "-Dexec.mainClass=com.project.Main"
 ```
 
 Executa la classe principal passant paràmetres:
