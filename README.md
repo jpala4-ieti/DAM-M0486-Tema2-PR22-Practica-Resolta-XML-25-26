@@ -33,9 +33,19 @@ Compila el projecte:
 mvn compile test package
 ```
 
-Executa la classe principal:
+Executa la classe principal en el projecte actual:
 ```bash
-mvn exec:java -q -Dexec.mainClass="<com.project.Main>" <param1> <param2> <param3>
+mvn exec:java -q "-Dexec.mainClass=com.project.Main"
+```
+
+Executa la classe principal passant paràmetres:
+```bash
+mvn exec:java -q "-Dexec.mainClass=com.project.Main" "-Dexec.args=param1 param2 param3"
+```
+
+Execució de forma genèrica:
+```bash
+mvn exec:java -q "-Dexec.mainClass=<com.project.Main>" "-Dexec.args=<param1> <param2> <param3>"
 ```
 
 On:

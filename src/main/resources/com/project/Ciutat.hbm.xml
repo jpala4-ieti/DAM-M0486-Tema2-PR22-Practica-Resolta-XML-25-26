@@ -1,24 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE hibernate-mapping PUBLIC
-    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
+<!-- Declaració del DOCTYPE per al mapatge de Hibernate
+     Defineix la versió 3.0 del DTD (Document Type Definition) de Hibernate
+     Necessari per validar l'estructura del document XML -->
+<!DOCTYPE hibernate-mapping PUBLIC 
+   "-//Hibernate/Hibernate Mapping DTD 3.0//EN" 
+   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<!-- Element arrel del mapatge de Hibernate
+     package: Defineix el paquet base per a totes les classes dins aquest fitxer
+     Això permet referenciar les classes sense haver d'especificar el paquet complet -->
 <hibernate-mapping package="com.project">
+    
+    <!-- Definició del mapatge de la classe Ciutat a la taula de base de dades
+         name: Nom complet de la classe Java (sense paquet perquè ja està definit a dalt)
+         table: Nom de la taula de base de dades corresponent -->
     <class name="Ciutat" table="ciutats">
-        <!-- Clau primària -->
+        
+        <!-- Definició de la clau primària (Primary Key)
+             name: Nom de l'atribut Java a la classe Ciutat
+             column: Nom de la columna a la base de dades -->
         <id name="ciutatId" column="ciutat_id">
+            <!-- Estratègia de generació de la clau primària
+                 identity: Utilitza la funcionalitat IDENTITY de la base de dades
+                 (auto-increment en MySQL, SERIAL en PostgreSQL, etc.)
+                 La base de dades genera automàticament el valor del ID -->
             <generator class="identity"/>
         </id>
         
-        <!-- Atributs simples -->
+        <!-- Propietat simple: Nom de la ciutat
+             name: Nom de l'atribut Java
+             column: Nom de la columna a la base de dades
+             type: Tipus de dades (string = VARCHAR en la majoria de BD)
+             not-null: Indica que aquest camp és obligatori (no pot ser NULL) -->
         <property name="nom" column="nom" type="string" not-null="true"/>
+        
+        <!-- Propietat simple: País on es troba la ciutat
+             type: string
+             Nota: Aquest camp pot ser null ja que no té l'atribut not-null -->
         <property name="pais" column="pais" type="string"/>
+        
+        <!-- Propietat simple: Nombre d'habitants de la ciutat
+             type: integer = INT en la majoria de bases de dades
+             Aquest camp també pot ser null -->
         <property name="poblacio" column="poblacio" type="integer"/>
         
-        <!-- Relació OneToMany amb Ciutada -->
+        <!-- Definició d'una relació One-to-Many (un a molts)
+             Representa la col·lecció de ciutadans que viuen en aquesta ciutat
+             
+             name: Nom de l'atribut de col·lecció a la classe Ciutat
+             inverse: true indica que aquesta part de la relació NO és responsable 
+                     de mantenir la relació (l'altra banda és la propietària)
+             cascade: all significa que totes les operacions (save, update, delete, etc.)
+                     es propaguen als objectes ciutadans relacionats
+             lazy: false indica càrrega eager (els ciutadans es carreguen immediatament
+                   amb la ciutat). Si fos true (valor per defecte), seria lazy loading -->
         <set name="ciutadans" inverse="true" cascade="all" lazy="false">
+            <!-- Defineix la columna de clau forana a la taula ciutadans
+                 que referencia aquesta ciutat -->
             <key column="ciutat_id"/>
+            
+            <!-- Especifica la classe de l'altra banda de la relació
+                 class: Ciutada és la classe Java que representa cada element
+                        de la col·lecció (cada ciutadà) -->
             <one-to-many class="Ciutada"/>
         </set>
+        
     </class>
+    
 </hibernate-mapping>

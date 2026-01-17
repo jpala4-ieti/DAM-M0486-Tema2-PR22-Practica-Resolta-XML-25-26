@@ -1,22 +1,144 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declaració del DOCTYPE per a la configuració de Hibernate
+     IMPORTANT: Aquest DTD és diferent del de mapatge (hibernate-mapping)
+     Aquest és per a hibernate-configuration, que configura la SessionFactory
+     i els paràmetres de connexió a la base de dades -->
 <!DOCTYPE hibernate-configuration PUBLIC
     "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 
+<!-- Element arrel per a la configuració de Hibernate
+     Aquest fitxer normalment es diu hibernate.cfg.xml
+     i s'utilitza per configurar la SessionFactory de Hibernate -->
 <hibernate-configuration>
+    
+    <!-- SessionFactory: Fàbrica de sessions de Hibernate
+         És un objecte singleton (un per aplicació) que crea Sessions
+         Una Session representa una connexió amb la base de dades
+         i s'utilitza per fer operacions CRUD (Create, Read, Update, Delete) -->
     <session-factory>
-        <!-- Configuració de la base de dades SQLite -->
+        
+        <!-- ==================== CONFIGURACIÓ DE LA BASE DE DADES ==================== -->
+        
+        <!-- Driver JDBC per a SQLite
+             Especifica la classe del driver que Hibernate utilitzarà per connectar-se
+             Per a SQLite s'utilitza org.sqlite.JDBC
+             Cal tenir la dependència sqlite-jdbc al classpath (Maven/Gradle)
+             
+             Altres exemples:
+             - MySQL: com.mysql.cj.jdbc.Driver
+             - PostgreSQL: org.postgresql.Driver
+             - Oracle: oracle.jdbc.driver.OracleDriver -->
         <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+        
+        <!-- URL de connexió JDBC
+             Defineix on es troba la base de dades i com connectar-s'hi
+             
+             Estructura per a SQLite: jdbc:sqlite:ruta/al/fitxer.db
+             - jdbc:sqlite: és el protocol
+             - ./data/database.db és la ruta relativa al fitxer de base de dades
+               ./ indica el directori actual
+               Si el fitxer no existeix, SQLite el crearà automàticament
+             
+             Altres exemples:
+             - MySQL: jdbc:mysql://localhost:3306/nom_base_dades
+             - PostgreSQL: jdbc:postgresql://localhost:5432/nom_base_dades -->
         <property name="hibernate.connection.url">jdbc:sqlite:./data/database.db</property>
+        
+        <!-- Dialecte de Hibernate per a SQLite
+             El dialecte és una classe que tradueix les operacions de Hibernate
+             al SQL específic de cada base de dades
+             
+             SQLiteDialect es troba al paquet community perquè SQLite no és
+             oficialment suportat per Hibernate (requereix dependència extra:
+             hibernate-community-dialects)
+             
+             Cada base de dades té el seu dialecte:
+             - MySQL: org.hibernate.dialect.MySQLDialect
+             - PostgreSQL: org.hibernate.dialect.PostgreSQLDialect
+             - Oracle: org.hibernate.dialect.OracleDialect
+             
+             El dialecte gestiona diferències com:
+             - Tipus de dades (VARCHAR vs TEXT)
+             - Funcions específiques (CONCAT, SUBSTRING)
+             - Sintaxi de paginació (LIMIT vs ROWNUM) -->
         <property name="hibernate.dialect">org.hibernate.community.dialect.SQLiteDialect</property>
         
-        <!-- Configuració de Hibernate -->
+        <!-- ==================== CONFIGURACIÓ DE HIBERNATE ==================== -->
+        
+        <!-- Estratègia de generació de l'esquema de base de dades
+             hibernate.hbm2ddl.auto controla com Hibernate gestiona l'esquema (DDL)
+             
+             Valors possibles:
+             - create: ESBORRA i RECREA totes les taules cada vegada que s'inicia l'aplicació
+                      ⚠️ ATENCIÓ: Destrueix totes les dades existents!
+                      ✓ Útil per a desenvolupament i proves
+             - create-drop: Crea les taules a l'inici i les esborra al tancar
+                           Útil per a tests unitaris
+             - update: Actualitza l'esquema sense esborrar dades
+                      Afegeix noves taules/columnes però no elimina res
+                      ⚠️ No detecta tots els canvis (renames, tipus modificats)
+             - validate: Només valida que l'esquema coincideixi amb els mapatges
+                        No modifica res. Llança excepció si hi ha diferències
+             - none: No fa res (recomanat per a producció)
+             
+             RECOMANACIÓ: Usa 'create' o 'update' en desenvolupament,
+                         'validate' o 'none' en producció -->
         <property name="hibernate.hbm2ddl.auto">create</property>
+        
+        <!-- Mostrar SQL a la consola
+             false: No mostra les sentències SQL que executa Hibernate
+             true: Mostra totes les sentències SQL a la sortida estàndard (System.out)
+             
+             Útil per a:
+             - Depuració: Veure exactament quines consultes s'executen
+             - Aprenentatge: Entendre com Hibernate genera SQL
+             - Optimització: Detectar queries ineficients (N+1 problem)
+             
+             RECOMANACIÓ: true en desenvolupament, false en producció -->
         <property name="hibernate.show_sql">false</property>
+        
+        <!-- Formatejar SQL mostrat per pantalla
+             true: Formata el SQL amb indentació i salts de línia per facilitar la lectura
+             false: Mostra el SQL en una sola línia
+             
+             Només té efecte si show_sql és true
+             El SQL formatat és més fàcil de llegir i entendre
+             
+             Exemple sense format:
+             select ciutada0_.ciutada_id as ciutada_1_0_, ciutada0_.nom as nom2_0_ from ciutadans ciutada0_
+             
+             Exemple amb format:
+             select
+                 ciutada0_.ciutada_id as ciutada_1_0_,
+                 ciutada0_.nom as nom2_0_
+             from
+                 ciutadans ciutada0_ -->
         <property name="hibernate.format_sql">true</property>
         
-        <!-- Mapatges -->
+        <!-- ==================== MAPATGES (Mapping Resources) ==================== -->
+        
+        <!-- Registre del fitxer de mapatge per a la classe Ciutada
+             resource: Ruta al fitxer .hbm.xml dins del classpath
+             
+             Hibernate necessita saber quins fitxers de mapatge existeixen
+             per poder treballar amb les entitats
+             
+             La ruta segueix l'estructura de paquets:
+             com/project/Ciutada.hbm.xml correspon al paquet com.project
+             
+             Alternatives:
+             - Usar anotacions JPA/Hibernate a les classes (més modern)
+             - Especificar amb <mapping class="com.project.Ciutada"/> si s'usen anotacions -->
         <mapping resource="com/project/Ciutada.hbm.xml"/>
+        
+        <!-- Registre del fitxer de mapatge per a la classe Ciutat
+             S'han de registrar TOTS els fitxers de mapatge que volem utilitzar
+             L'ordre normalment no importa, però és recomanable posar primer
+             les classes "pare" en relacions bidireccionals -->
         <mapping resource="com/project/Ciutat.hbm.xml"/>
+        
     </session-factory>
+    
 </hibernate-configuration>

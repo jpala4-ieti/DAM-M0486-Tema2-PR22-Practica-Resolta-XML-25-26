@@ -1,24 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Declaració del DOCTYPE per al mapatge de Hibernate
+     Defineix la versió 3.0 del DTD (Document Type Definition) de Hibernate
+     Aquest DTD valida l'estructura i sintaxi del document XML -->
 <!DOCTYPE hibernate-mapping PUBLIC
     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
+<!-- Element arrel del mapatge de Hibernate
+     package: Especifica el paquet base per a totes les classes d'aquest fitxer
+     Evita haver de repetir "com.project" davant de cada nom de classe -->
 <hibernate-mapping package="com.project">
-    <class name="Ciutat" table="ciutats">
-        <!-- Clau primària -->
-        <id name="ciutatId" column="ciutat_id">
+    
+    <!-- Definició del mapatge de la classe Ciutada a la taula de base de dades
+         name: Nom de la classe Java (sense el paquet complet)
+         table: Nom de la taula a la base de dades que emmagatzema els ciutadans
+         
+         Aquesta classe representa l'altra banda de la relació amb Ciutat
+         (Many-to-One: molts ciutadans pertanyen a una ciutat) -->
+    <class name="Ciutada" table="ciutadans">
+        
+        <!-- Definició de la clau primària (Primary Key)
+             name: Nom de l'atribut Java a la classe Ciutada
+             column: Nom de la columna de clau primària a la base de dades -->
+        <id name="ciutadaId" column="ciutada_id">
+            <!-- Estratègia de generació automàtica de la clau primària
+                 identity: Utilitza el mecanisme natiu de la base de dades per generar IDs
+                 - MySQL/MariaDB: AUTO_INCREMENT
+                 - PostgreSQL: SERIAL o IDENTITY
+                 - SQL Server: IDENTITY
+                 La base de dades assigna automàticament un valor únic incremental -->
             <generator class="identity"/>
         </id>
         
-        <!-- Atributs simples -->
+        <!-- Propietat simple: Nom del ciutadà/ciutadana
+             name: Nom de l'atribut a la classe Java
+             column: Nom de la columna a la base de dades
+             type: string es mapeja a VARCHAR o TEXT segons la base de dades
+             not-null: true indica que aquest camp és obligatori
+                       Hibernate validarà que no sigui null abans de guardar -->
         <property name="nom" column="nom" type="string" not-null="true"/>
-        <property name="pais" column="pais" type="string"/>
-        <property name="poblacio" column="poblacio" type="integer"/>
         
-        <!-- Relació OneToMany amb Ciutada -->
-        <set name="ciutadans" inverse="true" cascade="all" lazy="false">
-            <key column="ciutat_id"/>
-            <one-to-many class="Ciutada"/>
-        </set>
+        <!-- Propietat simple: Cognom del ciutadà/ciutadana
+             type: string
+             Aquest camp és opcional (pot ser NULL) ja que no té not-null="true" -->
+        <property name="cognom" column="cognom" type="string"/>
+        
+        <!-- Propietat simple: Edat del ciutadà/ciutadana
+             type: integer es mapeja a INT, INTEGER o similar segons la BD
+             Camp opcional que pot ser NULL -->
+        <property name="edat" column="edat" type="integer"/>
+        
+        <!-- Definició d'una relació Many-to-One (molts a un)
+             Representa que molts ciutadans poden pertànyer a una mateixa ciutat
+             
+             name: Nom de l'atribut a la classe Ciutada que referencia la Ciutat
+             class: Classe de l'objecte relacionat (Ciutat)
+             column: Columna de clau forana (Foreign Key) a la taula ciutadans
+                     que referencia la clau primària de la taula ciutats
+             
+             Aquesta és la banda "propietària" de la relació bidireccional:
+             - A Ciutat.hbm.xml tenim inverse="true" al <set>
+             - Aquí a Ciutada tenim el control real de la relació
+             - Quan guardem un Ciutada, Hibernate actualitza ciutat_id
+             
+             Nota: No s'especifica lazy, per tant usa el valor per defecte (proxy)
+                   que fa lazy loading de l'objecte Ciutat relacionat -->
+        <many-to-one name="ciutat" class="Ciutat" column="ciutat_id" />
+        
     </class>
+    
 </hibernate-mapping>
